@@ -8,9 +8,9 @@ const ComplaintForm = db.define('complaintForm', {
         primaryKey: true,
         autoIncrement: true
     },
-    vehicleNo: {
-        type: DataTypes.INTEGER,
-    },
+    // vehicleNo: {
+    //     type: DataTypes.ARRAY,
+    // },
     vehicleImage: {
         type: DataTypes.STRING
     },
@@ -21,5 +21,8 @@ const ComplaintForm = db.define('complaintForm', {
     timestamps: true
 })
 
+// db.sync({ alter: true }).then(() => {
+//     console.log("sync")
+// });
 
 export default ComplaintForm
