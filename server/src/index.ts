@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
+import cors from 'cors'
 
 import formDataRoutes from './routes/formDataRoutes'
 import db from './utils/db'
@@ -10,6 +11,12 @@ import './utils/associations'
 dotenv.config
 
 const app = express()
+app.use(cors({
+    origin: '*',
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
 app.use(express.json());
 async function myConnection() {
     await db.authenticate()
@@ -23,7 +30,7 @@ const createUser = async () => {
     try {
         await db.sync({ alter: true })
         console.log("Database synced successfully");
-        
+
     } catch (error) {
         console.error("Error syncing database:", error);
     }

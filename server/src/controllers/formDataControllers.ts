@@ -5,33 +5,48 @@ import Complaint_Vehicle from '../models/Complain_Vehicle';
 import VehicleDetails from '../models/VehicleDetailsModel';
 import User from '../models/UserModel';
 
-export const formData = async (req: Request, res: Response) => {
-    const { email, vehicleNo, vehicleImage, complainDescription } = req.body
+
+export const formData = async (req: Request, res: Response): Promise<void> => {
+    const { email, vehicleNo, vehicleImage, complainDescription } = req.body;
 
     await db.sync({ alter: true });
+
+    const confirmedUser = await User.findOne({
+        where: { email: email }
+    });
+
+    if (!confirmedUser) {
+        res.json({ error: "Email not found!!" });
+        return;
+    }
+
+    for (const number of vehicleNo) {
+        const vehicleNum = await VehicleDetails.findOne({
+            where: { vehicleNo: number }
+        });
+
+        if (!vehicleNum) {
+            res.json({ error: "Vehicle numbers are not correct" });
+            return;
+        }
+    }
+
     const createComplain = await ComplaintForm.create({
         vehicleImage: vehicleImage,
         complainDescription: complainDescription,
         email: email
-    })
+    });
 
-    vehicleNo.map(async (number: any) => {
-        const vehicleNum = await VehicleDetails.findOne({
-            where: { vehicleNo: number }
-        })
-        if (!vehicleNum) res.json({ error: "Vehicle numbers are not correct" })
-    })
-
-    vehicleNo.map(async (number: any) => {
+    for (const number of vehicleNo) {
         await Complaint_Vehicle.create({
             complaintFormFid: createComplain.dataValues.fid,
             vehicleDetailVehicleNo: number
-        })
-    })
+        });
+    }
 
+    res.json({ message: "Complaints Created successfully" });
+};
 
-    res.json(createComplain)
-}
 
 
 export const allComplaints = async (req: Request, res: Response) => {
@@ -155,6 +170,7 @@ export const allComplaints = async (req: Request, res: Response) => {
                 details: {
                     userName: UserId?.dataValues.username,
                     userEmail: UserId?.dataValues.email,
+                    complaintId: complaintNumber?.dataValues.fid,
                     vehicleImage: complaintNumber?.dataValues.vehicleImage,
                     complainDescription: complaintNumber?.dataValues.complainDescription,
                     createdAt: complaintNumber?.dataValues.createdAt,
