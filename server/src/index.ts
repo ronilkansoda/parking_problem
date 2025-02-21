@@ -8,7 +8,7 @@ import User from './models/UserModel';
 import VehicleDetails from './models/VehicleDetailsModel';
 import './utils/associations'
 
-dotenv.config
+dotenv.config()
 
 const app = express()
 app.use(cors({
@@ -25,6 +25,7 @@ async function myConnection() {
 myConnection()
 
 app.use('/form', formDataRoutes)
+
 
 const createUser = async () => {
     try {

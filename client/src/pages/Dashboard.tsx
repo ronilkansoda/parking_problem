@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ComplaintCard from "../components/ComplaintCard";
+import img1 from '../assets/img1.jpg'
 
 interface Complaint {
     id: number;
@@ -19,7 +20,7 @@ export default function Dashboard() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // Fetch complaints from backend
+
     useEffect(() => {
         const fetchComplaints = async () => {
             try {
@@ -47,6 +48,47 @@ export default function Dashboard() {
 
         fetchComplaints();
     }, []);
+
+    const sendWarning = async (complaint: Complaint) => {
+        try {
+            const response = await fetch("http://localhost:3000/form/warningBot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userName: complaint.userName,
+                    userEmail: complaint.userEmail,
+                    description: complaint.description,
+                    date: complaint.date,
+                    time: complaint.time,
+                    vehicleDetails: complaint.vehicleDetails,
+                }),
+            });
+            const result = await response.json();
+            alert(result.message);
+        } catch (error) {
+            console.error("Error sending warning:", error);
+        }
+    }
+    const sendSuspension = async (complaint: Complaint) => {
+        try {
+            const response = await fetch("http://localhost:3000/form/suspensionBot", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userName: complaint.userName,
+                    userEmail: complaint.userEmail,
+                    description: complaint.description,
+                    date: complaint.date,
+                    time: complaint.time,
+                    vehicleDetails: complaint.vehicleDetails,
+                }),
+            });
+            const result = await response.json();
+            alert(result.message);
+        } catch (error) {
+            console.error("Error sending suspension:", error);
+        }
+    };
 
 
     // Filter complaints based on selected date range
@@ -106,7 +148,7 @@ export default function Dashboard() {
                     <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg w-full max-w-lg md:max-w-2xl">
                         <h2 className="text-lg md:text-xl font-bold text-[#B30000] text-center">Complaint Details</h2>
                         <img
-                            src={selectedComplaint.image}
+                            src={img1}
                             alt="Complaint"
                             className="w-full h-40 object-cover rounded-lg mb-3"
                         />
@@ -132,10 +174,10 @@ export default function Dashboard() {
 
                         {/* Buttons */}
                         <div className="flex flex-col md:flex-row justify-between gap-2 md:gap-4 mt-4">
-                            <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full">
+                            <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full" onClick={() => sendWarning(selectedComplaint)}>
                                 ⚠️ Warning
                             </button>
-                            <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full">
+                            <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full" onClick={() => sendSuspension(selectedComplaint)}>
                                 🚫 Suspend
                             </button>
                             <button className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full" onClick={() => setSelectedComplaint(null)}>

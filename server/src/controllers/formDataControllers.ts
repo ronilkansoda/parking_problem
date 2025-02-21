@@ -4,6 +4,12 @@ import ComplaintForm from '../models/ComplaintFormModel';
 import Complaint_Vehicle from '../models/Complain_Vehicle';
 import VehicleDetails from '../models/VehicleDetailsModel';
 import User from '../models/UserModel';
+import axios from 'axios';
+import dotenv from "dotenv";
+import FormData from "form-data";
+import fs from "fs";
+import path from "path";
+dotenv.config();
 
 
 export const formData = async (req: Request, res: Response): Promise<void> => {
@@ -194,3 +200,86 @@ export const allComplaints = async (req: Request, res: Response) => {
 
 }
 
+// Function to send message with an image
+const sendMessageToThread = async (message: string, imagePath?: string) => {
+    try {
+        const formData = new FormData();
+        formData.append("content", message);
+
+        if (imagePath) {
+            const imageStream = fs.createReadStream(imagePath);
+            formData.append("file", imageStream, path.basename(imagePath));
+        }
+
+        const response = await axios.post(
+            `https://discord.com/api/v10/channels/${process.env.DISCORD_THREAD_ID}/messages`,
+            formData,
+            {
+                headers: {
+                    "Authorization": `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+                    ...formData.getHeaders(),
+                },
+            }
+        );
+
+        console.log("✅ Message sent to thread:", response.data);
+    } catch (error: any) {
+        console.error("❌ Error sending message:", error.response?.data || error.message);
+    }
+};
+
+// API to handle warning messages
+export const warningBot = async (req: Request, res: Response) => {
+    const { description, date, time, vehicleDetails } = req.body;
+    const imagePath = 'D:/CODE/7Span/Week 2/Parking Project/server/src/assets/img1.jpg'
+
+    const vehicleInfo = vehicleDetails.map((vehicle: { vehicleNo: any; empName: any; empEmail: any; teamName: any; }) =>
+        `- **Vehicle No:** ${vehicle.vehicleNo}\n  - **Employee Name:** ${vehicle.empName}\n  - **Employee Email:** ${vehicle.empEmail}\n  - **Team:** ${vehicle.teamName}`
+    ).join("\n\n");
+
+    const message = `🚨 **Warning Issued** 🚨  
+    **Violation Detected!**  
+    - **Reason:** Unauthorized parking in corporate premises  
+    - **Suspension Duration:** 6 months  
+    - **Action Required:** Contact administration immediately  
+
+    **Complaint Details:**  
+    - **Description:** ${description}  
+    - **Date:** ${date}  
+    - **Time:** ${time}  
+
+    **Vehicle Details:**  
+    ${vehicleInfo || "_No vehicle details available._"}  
+
+    📸 **Attached Evidence:** (See below)`;
+
+    await sendMessageToThread(message, imagePath);
+    res.json({ success: true, message: "Warning sent to Discord thread with image!" });
+};
+
+export const suspensionBot = async (req: Request, res: Response) => {
+    const { description, date, time, vehicleDetails } = req.body;
+    const imagePath = 'D:/CODE/7Span/Week 2/Parking Project/server/src/assets/img2.jpg'
+
+    const vehicleInfo = vehicleDetails.map((vehicle: { vehicleNo: any; empName: any; empEmail: any; teamName: any; }) =>
+        `- **Vehicle No:** ${vehicle.vehicleNo}\n  - **Employee Name:** ${vehicle.empName}\n  - **Employee Email:** ${vehicle.empEmail}\n  - **Team:** ${vehicle.teamName}`
+    ).join("\n\n");
+
+    const message = `🚫 **Suspension Notice** 🚫  
+
+⚠️ **This vehicle has been suspended for 6 months** due to unauthorized parking in a restricted corporate building.  
+
+**Complaint Details:**  
+- **Description:** ${description}  
+- **Date:** ${date}  
+- **Time:** ${time}  
+
+**Vehicle Details:**  
+${vehicleInfo || "_No vehicle details available._"}
+
+  📸 **Attached Evidence:** (See below)
+`;
+
+    await sendMessageToThread(message, imagePath);
+    res.json({ success: true, message: "Suspension notice sent to Discord thread!" });
+};
